@@ -152,6 +152,7 @@ resource "docker_network" "fullstack_network" {
 }
 
 resource "docker_container" "frontend" {
+    count           = data.coder_workspace.me.transition == "start" ? 1 : 0
     name            = "fullstack-${data.coder_workspace.me.id}-frontend"
     image           = docker_image.frontend_image.image_id
     hostname = data.coder_workspace.me.name
@@ -173,6 +174,7 @@ resource "docker_container" "frontend" {
 }
 
 resource "docker_container" "backend" {
+    count           = data.coder_workspace.me.start_count
     name            = "fullstack-${data.coder_workspace.me.id}-backend"
     image           = docker_image.backend_image.image_id
     
@@ -195,10 +197,11 @@ resource "docker_container" "backend" {
 }
 
 resource "coder_metadata" "backend_info" {
-    resource_id     = docker_container.backend.id
+    count           = data.coder_workspace.me.start_count
+    resource_id     = docker_container.backend[0].id
     item {
         key         = "IP"
-        value       = docker_container.backend.network_data[0].ip_address
+        value       = docker_container.backend[0].network_data[0].ip_address
     }
     item {
         key         = "Database Type"
